@@ -17,7 +17,7 @@ Update and upgrade the packages
 sudo yum -y update
 sudo sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
 sudo yum -y update && sudo yum -y upgrade
-``
+```
 
 Uninstall old versions
 ```
