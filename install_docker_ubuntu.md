@@ -2,7 +2,7 @@
 https://docs.docker.com/engine/install/ubuntu/
 
 ```
-sudo apt update && sudo apt upgrade
+sudo apt -y update && sudo apt -y upgrade
 ```
 
 Uninstall old versions
