@@ -14,7 +14,7 @@ sudo apt-get remove docker docker-engine docker.io containerd runc
 ### Set up the repository
 Update the apt package index
 ```
-sudo apt-get update
+sudo apt-get -y update
 ```
 
 Install packages to allow apt to use a repository over HTTPS
@@ -43,12 +43,12 @@ echo \
 
 Update the apt package index
 ```
-sudo apt-get update
+sudo apt-get -y update
 ```
 
 Install the latest version of Docker Engine and containerd
 ```
-sudo apt-get install docker-ce docker-ce-cli containerd.io
+sudo apt-get -y install docker-ce docker-ce-cli containerd.io
 ```
 
 Verify that Docker Engine is installed
@@ -72,6 +72,6 @@ sudo systemctl enable containerd.service
 
 Install git if needed
 ```
-sudo yum -y install git
+sudo apt -y install git
 ```
 
