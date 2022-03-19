@@ -44,16 +44,11 @@ sudo yum-config-manager \
     https://download.docker.com/linux/centos/docker-ce.repo
 ```
 
-Install the latest version of Docker Engine and containerd,
-```
-sudo yum -y install docker-ce docker-ce-cli containerd.io
-```
-
 ### Install Docker Engine
 
 Install the latest version of Docker Engine and containerd
 ```
-sudo yum -y install docker-ce docker-ce-cli containerd.io
+sudo yum install docker-ce docker-ce-cli containerd.io
 ```
 
 Start docker service
