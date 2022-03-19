@@ -1,54 +1,68 @@
-## Installing Docker on ubuntu
-https://docs.docker.com/engine/install/ubuntu/
+## Installing Docker on centos
+https://docs.docker.com/engine/install/centos/
 
+Do ssh to the machine
 ```
-sudo apt -y update && sudo apt -y upgrade
+ssh -i C:\......\DMZ1.pem centos@13.233.XXXX.XXXX
+```
+
+Update the repo files to point to new url
+```
+sudo sed -i -e "s|mirrorlist=|#mirrorlist=|g" /etc/yum.repos.d/CentOS-*
+sudo sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
+```
+
+Update and upgrade the packages
+```
+sudo yum -y update && sudo yum -y upgrade
 ```
 
 Uninstall old versions
 
 ```
-sudo apt-get remove docker docker-engine docker.io containerd runc
+sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
 ```
+
+sudo sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
+
 
 ### Set up the repository
-Update the apt package index
+Install the yum-utils package (which provides the yum-config-manager utility)
 ```
-sudo apt-get -y update
-```
-
-Install packages to allow apt to use a repository over HTTPS
-```
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
-```
-
-Add Docker’s official GPG key:
-```
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+sudo yum install -y yum-utils
 ```
 
 Set up the stable repository
 ```
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
 ```
+
+Install the latest version of Docker Engine and containerd,
+```
+sudo yum -y install docker-ce docker-ce-cli containerd.io
+```
+
 
 
 ### Install Docker Engine
 
-Update the apt package index
-```
-sudo apt-get -y update
-```
-
 Install the latest version of Docker Engine and containerd
 ```
-sudo apt-get -y install docker-ce docker-ce-cli containerd.io
+sudo yum -y install docker-ce docker-ce-cli containerd.io
+```
+
+Start docker service
+```
+sudo systemctl start docker
 ```
 
 Verify that Docker Engine is installed
