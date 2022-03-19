@@ -14,11 +14,12 @@ sudo sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.
 
 Update and upgrade the packages
 ```
+sudo yum -y update
+sudo sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
 sudo yum -y update && sudo yum -y upgrade
-```
+``
 
 Uninstall old versions
-
 ```
 sudo yum remove docker \
                   docker-client \
@@ -29,9 +30,6 @@ sudo yum remove docker \
                   docker-logrotate \
                   docker-engine
 ```
-
-sudo sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
-
 
 ### Set up the repository
 Install the yum-utils package (which provides the yum-config-manager utility)
@@ -50,8 +48,6 @@ Install the latest version of Docker Engine and containerd,
 ```
 sudo yum -y install docker-ce docker-ce-cli containerd.io
 ```
-
-
 
 ### Install Docker Engine
 
