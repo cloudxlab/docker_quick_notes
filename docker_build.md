@@ -1,4 +1,4 @@
-### Build an image from a Dockerfile
+### Build images from a Dockerfiles
 
 This document is based on Ubuntu OS but should work on other OS with minor changes.
 
