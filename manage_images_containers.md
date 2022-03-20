@@ -96,6 +96,11 @@ docker image inspect -f '{{json .}}' ubuntu:latest | jq -r '. | {Id: .Id, Digest
 docker image inspect -f '{{json .}}' ubuntu:latest | jq -r '. | {GraphDriver: .GraphDriver}'
 ```
 
+Inspect to get container IP address
+```
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ubuntu
+```
+
 Remove the container automatically when it stops
 ```
 docker container run --rm ubuntu
@@ -107,8 +112,7 @@ For example, the main process in an ubuntu image is bash. When an ubuntu contain
 
 You can keep it running using any of the ways given below.
 
-**Method 1 - Use interactive as explained later**
-
+**Method 1 - Use interactive mode as explained later**
 
 **Method 2 - Add some long running main process to the container**
 ```
@@ -117,6 +121,8 @@ docker container run ubuntu tail -f /dev/null
 docker container run ubuntu bash -c "while true; do sleep 1; done"
 
 docker container run -d ubuntu bash -c "while true; do sleep 1; done"
+
+docker container run -d ubuntu bash -c "trap : TERM INT; sleep infinity & wait"
 
 docker run -d busybox top
 ```
@@ -344,6 +350,7 @@ You can pause/unpause/stop/start the containers. Stopping the container will kee
 docker stop mynginx # sends SIGTERM to the init process
 docker stop mynginx -t 10s # first sends SIGTERM, then sends SIGKILL and kills explicitly if container fails to stop with in 10 seconds
 docker start mynginx
+docker restart mynginx
 docker stats mynginx
 docker pause mynginx
 docker unpause mynginx
@@ -364,6 +371,22 @@ docker system df # Show docker disk usage
 docker system events # Get real time events from the server
 docker system info # Display system-wide information
 docker system prune # Remove unused data
+```
+
+You can rename the container
+```
+docker container rename old_name new_name
+```
+
+You can update container config
+```
+docker container inspect 860cf09df8f9 | grep -i cpus
+docker container update --cpus-cpus 1  860cf09df8f9
+```
+
+Inspect changes to files or directories on a container's filesystem
+```
+docker container diff 860cf09df8f9
 ```
 
 **Remove containers**
