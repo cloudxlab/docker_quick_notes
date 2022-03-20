@@ -1,3 +1,5 @@
+Create your own account on Docker registry hub.
+
 https://hub.docker.com/
 
 
