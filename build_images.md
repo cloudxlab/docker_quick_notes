@@ -45,6 +45,10 @@ docker build -t flaskapp:latest . -f ./Dockerfile
 Typical keywords in a Dockerfile
 * FROM -> It can be a parent image like ubuntu or base image like SCRATCH
 
+* ARG -> key-value pairs to be used during build
+
+* ENV -> key-value pairs to be used during build and container run time
+
 * RUN -> The commands to be run inside the parent/base image to add more pacakges etc
 
 * WORKDIR -> Set the working dir inside the image. It creates a new dir if not there.
@@ -155,6 +159,10 @@ docker run ubuntu /bin/cat /etc/passwd
 # with entry point, emulating cat command
 docker run --entrypoint="/bin/cat" ubuntu /etc/passwd
 ```
+
+To keep ubuntu container running in detached mode, you can add below:
+CMD ["sh", "-c", "tail -f /dev/null"]
+
 
 Refer to below repos for more examples and follow the README there:
 
