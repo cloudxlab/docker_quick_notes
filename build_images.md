@@ -1,5 +1,7 @@
 ### Build an image from a Dockerfile
 
+This document is based on Ubuntu OS but should work on other OS with minor changes.
+
 The docker build command builds Docker images from a Dockerfile and a “context”. A build’s context is the set of files located in the specified PATH or URL
 
 Syntax is as below.
