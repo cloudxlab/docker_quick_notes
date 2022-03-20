@@ -1,131 +1,164 @@
-Create your own account on Docker registry hub.
+### Docker Networking
 
-https://hub.docker.com/
+#### Network drivers
+Docker’s networking subsystem is pluggable, using drivers. Several drivers exist by default, and provide core networking functionality:
 
+- bridge - default network driver, used for standalone containers
 
-You first login to your registry hub account.
-```
-docker login
-```
+- host - used for standalone containers, remove network isolation between the container and the Docker host, and use the host’s networking directly
 
-You can serach the images in registry.
-```
-docker search manojkmhub/flaskapp
-docker search ubuntu
-```
+- overlay - Overlay networks connect multiple Docker daemons together and enable swarm services to communicate with each other. You can also use overlay networks to facilitate communication between a swarm service and a standalone container, or between two standalone containers on different Docker daemons. This strategy removes the need to do OS-level routing between these containers.
 
-List all tags from remote registry for a givem image.
-```
-curl -s -S "https://registry.hub.docker.com/v2/repositories/library/ubuntu/tags/" | jq '."results"[]["name"]' |sort
+- ipvlan: IPvlan networks give users total control over both IPv4 and IPv6 addressing. The VLAN driver builds on top of that in giving operators complete control of layer 2 VLAN tagging and even IPvlan L3 routing for users interested in underlay network integration.
 
-wget -q https://registry.hub.docker.com/v1/repositories/debian/tags -O -  | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}'
-```
+- macvlan: Macvlan networks allow you to assign a MAC address to a container, making it appear as a physical device on your network. The Docker daemon routes traffic to containers by their MAC addresses. Using the macvlan driver is sometimes the best choice when dealing with legacy applications that expect to be directly connected to the physical network, rather than routed through the Docker host’s network stack.
 
-**Pushing your own images to registry**
+- none: For this container, disable all networking. Usually used in conjunction with a custom network driver. none is not available for swarm services.
 
-When you do above, your password will be stored unencrypted in `/home/ubuntu/.docker/config.json`.
+- Network plugins: You can install and use third-party network plugins with Docker. These plugins are available from Docker Hub or from third-party vendors. See the vendor’s documentation for installing and using a given network plugin.
 
-Then, you tag your locallly created image to your account.
-```
-docker tag flaskapp:latest manojkmhub/flaskapp:latest
-```
+#### List all networks a container belongs to
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' [container]
 
-Then, you push the image to your hub account.
-```
-docker push manojkmhub/flaskapp:latest
-```
+#### List all containers belonging to a network by name
+docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' [network]
 
-**Creating your private registry**
+##### Connect a running container to a network
+docker network connect [network] [container]
 
-Start registry container
-```
-docker run -d -p 5000:5000 --restart=always --name private_registry registry:2
-```
+You can also specify a network when you start a container with the --network (or --net) flag as follows:
 
-Tag and push your image to the registry
-```
-docker tag flaskapp localhost:5000/flaskapp:latest
-docker push localhost:5000/flaskapp:latest
-```
+##### Connect a container to a network when it starts
+docker run --network [network] [container]
 
-If pushing to registry set up on remote server, you may get error. In that case, you need to allow the insure registries as show below.
+##### With containerA already running, test if containerA can connect to containerB by using its name
+docker exec [containerA] ping [containerB] -c2
 
-Edit the below file. If not there, you can create the file.
-```
-vi /etc/docker/daemon.json
-```
-
-Add below line
-```
-{
-  "insecure-registries" : ["registry_address:5000"]
-}
-```
-
-Retart docker
+#### Ping between 2 containers on default bridge network and user created bridge network
 
 ```
-sudo systemctl restart docker
+sudo apt install net-tools
+ifconfig
 ```
 
-List all catalog
+You will see bridge0 or docker0. That is the default bridge network.
+
+The Docker bridge driver automatically installs rules in the host machine so that containers on different bridge networks cannot communicate directly with each other.
+
+You can view the iptables data using below command.
 ```
-curl -X GET http://localhost:5000/v2/_catalog
+sudo iptables -S
 ```
 
-We are not discussing TLS etc here. But we can, secure the registry by adding userid password functionality.
-Clean up previous set up. Then, complete below steps.
-
-Do all this in a given dir.
-
-Install apache utils
+View all docker networks
 ```
-sudo apt install apache2-utils
-
-mkdir auth
-
-htpasswd -B registry.password testuser
+docker network ls
 ```
 
-Create a docker impose file
+Start two containers and study the network related details.
 ```
-vi docker-compose.yml
+docker run -d --name nginx1 -p 8001:80 nginx:latest
+docker run -d --name nginx2 -p 8002:80 nginx:latest
+
+docker container inspect nginx1
+docker container inspect nginx2
 ```
 
-```
-version: '3'
+Both containers will be running on default bridge network. IPs may be like 172.17.0.2, 172.17.0.3 etc.
 
-services:
-  registry:
-    image: registry:2
-    ports:
-    - "5000:5000"
-    environment:
-      REGISTRY_AUTH: htpasswd
-      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-      REGISTRY_AUTH_HTPASSWD_PATH: /auth/registry.password
-    volumes:
-      - ./auth:/auth
+```
+docker network inspect bridge | grep -i docker.network
+docker network inspect bridge
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx1
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx2
+docker network inspect -f '{{range .Containers}}{{.Name}} {{.IPv4Address}} {{end}}' bridge
 ```
 
-Bring up the stack
+Install ping inside both containers.
+
 ```
-docker-compose -p private_registry up -d --force-recreate
-docker-compose down
+docker exec -it nginx1 bash -c "apt update"
+docker exec -it nginx1 bash -c "apt install iputils-ping -y"
+
+docker exec -it nginx2 bash -c "apt update"
+docker exec -it nginx2 bash -c "apt install iputils-ping -y"
 ```
 
-Login in to the registry
+Check the ping status from each container to other one.
 ```
-docker login localhost:5000
+docker exec -it nginx1 ping nginx2 # ping by container name will not work as containers are on default network
+docker exec -it nginx2 ping nginx1 # ping by container name will not work as containers are on default network
+
+docker exec -it nginx1 ping 172.17.0.3 # ping by IP address will work
+docker exec -it nginx2 ping 172.17.0.2 # ping by IP address will work
 ```
 
-Tag and push your image to the registry
+Now, create a bridge network manually.
 ```
-docker tag flaskapp localhost:5000/flaskapp:latest
-docker push localhost:5000/flaskapp:latest
+docker network create --driver=bridge mynet
+docker network inspect mynet
 ```
 
-List the catalog.
+Connect the new network with the containers. Containers will still have old network.
 ```
-curl -X GET http://localhost:5000/v2/_catalog
+docker network connect mynet nginx1
+docker network inspect -f '{{range .Containers}}{{.Name}} {{.IPv4Address}} {{end}}' mynet
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx1
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx2
+```
+
+At this point of time, nginx1 can ping to old IP of nginx2 but nginx2 can not ping to new IP of nginx1 because nginx2 still has only default bridge network.
+
+```
+docker network connect mynet nginx2
+docker network inspect -f '{{range .Containers}}{{.Name}} {{.IPv4Address}} {{end}}' mynet
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx1
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx2
+```
+
+At this point of time, nginx1 can ping to old and new IP of nginx2, and nginx2 can ping to old and new IP of nginx1 because nginx1 and nginx2 both are now part of `bridge` and `mynet` networks.
+
+But most important change now is that containers can ping each other using container name too.
+```
+docker exec -it nginx1 ping nginx2
+docker exec -it nginx2 ping nginx1
+```
+
+If you want, you can now disconnect the containers from the default bridge network but you may need to first stop the containers, and then run the containers again with user created network.
+```
+docker container stop nginx1
+docker container stop nginx2
+docker network disconnect bridge nginx1
+docker network disconnect bridge nginx1
+
+docker container rm nginx1
+docker container rm nginx2
+
+docker run -d --name nginx1 --network mynet -p 8001:80 nginx:latest
+docker run -d --name nginx2 --network mynet -p 8002:80 nginx:latest
+```
+
+#### Ping between 2 containers on host network
+
+```
+docker container rm nginx1 --force
+docker container rm nginx2 --force
+
+#port publish using -p is NA for host network
+#here, using ubuntu for other container as 80 port is used on the host by nginx1 and another container can not be started
+docker run -d --name nginx1 --network=host nginx:latest
+docker run -dit --name ubuntu2 --network=host ubuntu:latest
+
+docker exec -it nginx1 bash -c "apt update"
+docker exec -it nginx1 bash -c "apt install iputils-ping -y"
+
+docker exec -it ubuntu2 bash -c "apt update"
+docker exec -it ubuntu2 bash -c "apt install iputils-ping -y"
+
+docker exec -it nginx1 ping localhost
+docker exec -it ubuntu2 ping localhost
+
+docker network inspect -f '{{range .Containers}}{{.Name}} {{.IPv4Address}} {{end}}' host
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx1
+docker inspect -f '{{range $key, $value := .NetworkSettings.Networks}}{{$key}} {{end}}' nginx2
 ```
