@@ -1,5 +1,7 @@
 ### Manage docker - images and containers
 
+This document is based on Ubuntu OS but should work on other OS with minor changes.
+
 To view all options of various commmands, you can run commands like below.
 ```
 docker --help
