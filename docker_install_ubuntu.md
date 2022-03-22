@@ -54,6 +54,7 @@ sudo apt-get -y install docker-ce docker-ce-cli containerd.io
 Verify that Docker Engine is installed
 ```
 sudo docker info
+```
 
 Set up current user to be able to run docker commands without sudo
 ```
