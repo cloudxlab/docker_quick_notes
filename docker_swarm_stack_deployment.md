@@ -82,7 +82,11 @@ docker stack deploy --compose-file docker-compose.yml swarm_stack_demo
 
 Verify the services in the stack
 ```ruby
+docker stack ls
+
 docker stack services swarm_stack_demo
+
+docker stack ps swarm_stack_demo
 ```
 
 If need to see logs of any of the services, run this.
