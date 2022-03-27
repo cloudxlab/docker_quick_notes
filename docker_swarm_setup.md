@@ -187,3 +187,38 @@ You can force the rebalance but it will stop and start the containers as needed.
 ```ruby
 docker service update --force redis_app
 ```
+
+##### Docker Swarm Networking
+
+Docker Swarm setup creates two networks on each node: `docker_gwbridge` and `ingress`.
+
+```ruby
+docker network ls
+```
+
+```
+ubuntu@ip-172-31-44-153:~/docker_swarm_stack_demo$ docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+edf129da84b3   bridge            bridge    local
+426089bd1a34   docker_gwbridge   bridge    local
+be0572e71a04   host              host      local
+xfx0b7crr85x   ingress           overlay   swarm
+bb7e59b2abb8   none              null      local
+ubuntu@ip-172-31-44-153:~/docker_swarm_stack_demo$
+```
+
+Irrespective of Swarm environment or otherwise, Overlay networks manage communications among the Docker daemons participating in the swarm.
+
+In terms of Swarm, The `ingress` network is a special overlay network that facilitates load balancing among a service’s nodes.
+
+The `docker_gwbridge` is a bridge network that connects the overlay networks (including the ingress network) to an individual Docker daemon’s physical network. In other words, it connects the individual Docker daemon to the other daemons participating in the swarm.By default, each container a service is running is connected to its local Docker daemon host’s docker_gwbridge network.
+
+**Docker Swarm Routing Mesh**
+
+https://docs.docker.com/engine/swarm/ingress/
+
+Docker Engine swarm mode makes it easy to publish ports for services to make them available to resources outside the swarm. All nodes participate in an ingress routing mesh. The routing mesh enables each node in the swarm to accept connections on published ports for any service running in the swarm, even if there’s no task running on the node. The routing mesh routes all incoming requests to published ports on available nodes to an active container.
+
+![Swarm Routing Mesh](https://docs.docker.com/engine/swarm/images/ingress-routing-mesh.png)
+
+
