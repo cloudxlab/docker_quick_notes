@@ -1,6 +1,11 @@
 ## Installing Docker on ubuntu
 https://docs.docker.com/engine/install/ubuntu/
 
+You may try as simple as this to install docker.
+```ruby
+curl -sSL https://get.docker.com/ | sh
+```
+
 ```
 sudo apt -y update && sudo apt -y upgrade
 ```

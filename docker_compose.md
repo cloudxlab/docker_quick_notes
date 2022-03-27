@@ -49,16 +49,22 @@ volumes:
 ```
 
 You can now build and run the app stack. The option -d is to run in detached mode. The option -p is to give custom project name which will be prefixed to images and containers names.
+Below are different variations of the commands to build the images and bring up the stack and bring down the stack as defined in docker compose file.
 ```
+docker-compose build
 docker-compose -f docker-compose.yml -p "MyPhpApp" build
 docker-compose -f docker-compose.yml -p "MyPhpApp" build --force-rm
 docker-compose images
 docker-compose -p "MyPhpApp" images
+docker-compose up
+docker-compose up -d
 docker-compose -f docker-compose.yml -p "MyPhpApp" up -d
 docker-compose config
 docker-compose -f docker-compose.yml -p "MyPhpApp" up -d --force-recreate
 docker-compose ps
 docker-compose -f docker-compose.yml down
+docker-compose -f docker-compose.yml -p "MyPhpApp" down
+docker-compose -p "MyPhpApp" down
 ```
 
 To uninstall Docker Compose if you installed using curl:

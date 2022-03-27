@@ -37,7 +37,7 @@ Then, you push the image to your hub account.
 docker push manojkmhub/flaskapp:latest
 ```
 
-#### Creating your private registry - simple version
+#### Creating your private registry - v1 - simple version
 
 Start registry container
 ```
@@ -75,7 +75,7 @@ List all catalog
 curl -X GET http://localhost:5000/v2/_catalog
 ```
 
-#### Creating your private registry - second version with authentication
+#### Creating your private registry - v2 - with authentication
 
 We are not discussing TLS etc here. But we can, secure the registry by adding userid password functionality.
 Clean up previous set up. Then, complete below steps.
@@ -134,8 +134,67 @@ List the catalog.
 curl -X GET http://localhost:5000/v2/_catalog
 ```
 
-#### Creating your private registry - thrd version with authentication and UI
+#### Creating your private registry - v3 - with UI
 
+Reference: https://hub.docker.com/r/konradkleine/docker-registry-frontend
+
+```ruby
+version: '3'
+services:
+    docker-registry:
+        image: registry:2
+        container_name: docker-registry
+        restart: always
+        volumes:
+        - "/tmp/docker_registry:/var/lib/registry"
+        ports:
+        - "5000:5000"
+        restart: always
+    docker-registry-ui:
+        image: konradkleine/docker-registry-frontend:v2
+        container_name: private-docker-registry-ui
+        ports:
+        - "8086:80"
+        environment:
+        - ENV_DOCKER_REGISTRY_HOST=docker-registry
+        - ENV_DOCKER_REGISTRY_PORT=5000
+        restart: always
+        depends_on:
+        - docker-registry
+```
+
+Bring up the stack
+```ruby
+docker-compose -f docker-compose.yml -p private_registry up -d
+```
+
+Access UI on http://<host ip>:8086/
+
+Tag and push your image to the registry
+```ruby
+docker pull manojkmhub/phpapp
+docker tag manojkmhub/phpapp localhost:5000/phpapp:latest
+docker push localhost:5000/phpapp:latest
+```
+
+Now, check the UI again and you should see the pushed image.
+
+List all catalog
+```ruby
+curl -X GET http://<host ip>:5000/v2/_catalog
+```
+
+Bring it down
+```ruby
+docker-compose -p private_registry down
+```
+
+
+#### Creating your private registry - v4 - with authentication and UI
+
+Reference: https://hub.docker.com/r/parabuzzle/craneoperator
+
+```ruby
 version: '3'
 services:
     docker-registry:
@@ -153,12 +212,40 @@ services:
         - REGISTRY_HOST=docker-registry
         - REGISTRY_PORT=5000
         - REGISTRY_PROTOCOL=http
+        - ALLOW_REGISTRY_LOGIN=true
+        - SESSION_SECRET="asfdasdadasda5242gdgdsSfs232"
+        - REGISTRY_USERNAME=manoj
+        - REGISTRY_PASSWORD=xyz123
         - SSL_VERIFY=false
         - USERNAME=admin
         - PASSWORD=mypassword
         restart: always
         depends_on:
         - docker-registry
+```
 
+Bring up the stack
+```ruby
+docker-compose -f docker-compose.yml -p private_registry up -d
+```
 
+Access UI on http://<host ip>:8086/
 
+Tag and push your image to the registry
+```
+docker pull manojkmhub/phpapp
+docker tag manojkmhub/phpapp localhost:5000/phpapp:latest
+docker push localhost:5000/phpapp:latest
+```
+
+Now, check the UI again and you should see the pushed image.
+
+List all catalog
+```
+curl -X GET http://<host ip>:5000/v2/_catalog
+```
+
+Bring it down
+```ruby
+docker-compose -p private_registry down
+```
