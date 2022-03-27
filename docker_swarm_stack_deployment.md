@@ -27,7 +27,7 @@ Then, there is Dockerfile to build the image for the Flask application. We also 
 Bring up the stack locally.
 
 ```ruby
-docker-compose up --build -b
+docker-compose up --build -d
 docker-compose ps
 ```
 
